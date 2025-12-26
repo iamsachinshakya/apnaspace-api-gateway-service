@@ -1,21 +1,21 @@
 import { z } from "zod";
 import { Environment, LogLevel } from "./constants";
 
-
-// ------------------------
-// Environment schema
-// ------------------------
+// Define & validate environment schema
 const envSchema = z.object({
     // Server
-    NODE_ENV: z.enum([Environment.DEVELOPMENT, Environment.PRODUCTION, Environment.TEST]).default(Environment.DEVELOPMENT),
-    PORT: z.string().regex(/^\d+$/, "PORT must be a number").default("5000"),
+    NODE_ENV: z.enum(Environment).default(Environment.DEVELOPMENT),
+    PORT: z
+        .string()
+        .regex(/^\d+$/, { message: "PORT must be a number" })
+        .default("5000"),
     CORS_ORIGIN: z.string(),
 
-    // Logging
-    LOG_LEVEL: z.enum([LogLevel.DEBUG, LogLevel.INFO, LogLevel.WARN, LogLevel.ERROR]).default(LogLevel.DEBUG),
-
-    // API Gateway identity
-    SERVICE_NAME: z.string().default("api-gateway"),
+    // JWT
+    ACCESS_TOKEN_SECRET: z.string().min(8, "ACCESS_TOKEN_SECRET must be at least 8 characters"),
+    ACCESS_TOKEN_EXPIRY: z.string(),
+    REFRESH_TOKEN_SECRET: z.string().min(8, "REFRESH_TOKEN_SECRET must be at least 8 characters"),
+    REFRESH_TOKEN_EXPIRY: z.string(),
 
     // Rate Limiting
     RATE_LIMIT_WINDOW_MS: z.string().regex(/^\d+$/, "RATE_LIMIT_WINDOW_MS must be a number").default("60000"),
@@ -26,31 +26,27 @@ const envSchema = z.object({
     USER_SERVICE_BASE_URL: z.string(),
     POST_SERVICE_BASE_URL: z.string(),
     COMMENT_SERVICE_BASE_URL: z.string(),
+
+    // Logging
+    LOG_LEVEL: z.enum(LogLevel).default(LogLevel.DEBUG),
 });
 
-// ------------------------
-// Parse & validate
-// ------------------------
 const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
-    console.error("❌ Invalid environment configuration:");
+    console.error("Invalid environment configuration:");
     console.error(parsed.error.format());
     process.exit(1);
 }
 
 export const env = parsed.data;
 
-// ------------------------
-// Environment helpers
-// ------------------------
+// constants
 export const isProduction = env.NODE_ENV === Environment.PRODUCTION;
 export const isDevelopment = env.NODE_ENV === Environment.DEVELOPMENT;
 export const isTest = env.NODE_ENV === Environment.TEST;
 
-// ------------------------
-// Startup log
-// ------------------------
+// Log startup configuration summary
 console.info(
     `🌍 Environment initialized: ${env.NODE_ENV} | Port: ${env.PORT} | Log level: ${env.LOG_LEVEL}`
 );
