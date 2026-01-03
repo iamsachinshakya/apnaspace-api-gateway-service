@@ -25,7 +25,7 @@ const envSchema = z.object({
     AUTH_SERVICE_BASE_URL: z.string(),
     USER_SERVICE_BASE_URL: z.string(),
     POST_SERVICE_BASE_URL: z.string(),
-    COMMENT_SERVICE_BASE_URL: z.string(),
+    CATEGORY_SERVICE_BASE_URL: z.string(),
 
     // Logging
     LOG_LEVEL: z.enum(LogLevel).default(LogLevel.DEBUG),
